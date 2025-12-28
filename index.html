@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>College Chatbot</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-image: url("https://images.unsplash.com/photo-1580582932707-520aed937b7b");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-wrapper {
+    width: 1800px;
+    height: 900px;
+    background: rgb(250, 246, 246);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-header {
+    padding: 19px;
+    text-align: center;
+    font-weight: 900;
+    border-bottom: 5px solid #942c2c;
+}
+
+.chat-box {
+    flex: 1;
+    padding: 19px;
+    overflow-y: auto;
+    background-image: url("griet.jpeg");
+    background-size: cover;
+    background-position: center;
+}
+
+/* MESSAGE BASE */
+.message {
+    max-width: 75%;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: 19px;
+    border-radius: 15px;
+    line-height: 1.8;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slideIn 0.75s ease forwards;
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* USER MESSAGE → RIGHT, NO BORDER */
+.user {
+    background: #eae6e6;
+    margin-left: auto;
+    border: none;
+    box-shadow: none;
+    border-bottom-right-radius: 0;
+}
+
+/* BOT MESSAGE → LEFT */
+.bot {
+    background: white;
+    border: 9px solid #e7d4d4;
+    margin-right: auto;
+    border-bottom-left-radius: 0;
+}
+
+/* TYPING */
+.typing {
+    font-size: 13px;
+    color: #bd5d5d;
+    margin: 6px 0;
+    margin-right: auto;
+    animation: blink 1.2s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
+
+.chat-input {
+    display: flex;
+    align-items: center;
+    padding: 18px;
+    border-top: 1px solid #eee;
+    background: white;
+}
+
+.chat-input input {
+    flex: 1;
+    height: 50px;
+    padding: 10px 14px;
+    border-radius: 25px;
+    border: 3px solid #100f0f;
+    outline: none;
+    font-size: 14px;
+}
+
+.send-btn {
+    margin-left: 8px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: none;
+    background: #eaeaea;
+    cursor: pointer;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat-wrapper">
+    <div class="chat-header">College Chatbot</div>
+
+    <div class="chat-box" id="chat-box">
+        <div class="message bot">
+            Hello 👋<br>
+           I’m here to help you with anything about GRIET
+        </div>
+    </div>
+
+    <div class="chat-input">
+        <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleEnter(event)">
+        <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+</div>
+
+<script>
+function handleEnter(e) {
+    if (e.key === "Enter") sendMessage();
+}
+
+function sendMessage() {
+    const input = document.getElementById("user-input");
+    const message = input.value.trim();
+    if (!message) return;
+
+    const chatBox = document.getElementById("chat-box");
+
+    // USER MESSAGE (RIGHT)
+    const userDiv = document.createElement("div");
+    userDiv.className = "message user";
+    userDiv.innerText = message;
+    chatBox.appendChild(userDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    input.value = "";
+
+    // TYPING
+    const typingDiv = document.createElement("div");
+    typingDiv.className = "typing";
+    typingDiv.innerText = "Bot is typing...";
+    chatBox.appendChild(typingDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    fetch("http://localhost:8080/chat", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: message
+    })
+    .then(res => res.text())
+    .then(reply => {
+        typingDiv.remove();
+
+        const botDiv = document.createElement("div");
+        botDiv.className = "message bot";
+        botDiv.innerText = reply;
+        chatBox.appendChild(botDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    })
+    .catch(() => {
+        typingDiv.remove();
+        const botDiv = document.createElement("div");
+        botDiv.className = "message bot";
+        botDiv.innerText = "Server error ❌";
+        chatBox.appendChild(botDiv);
+    });
+}
+</script>
+
+</body>
+</html>
